@@ -44,18 +44,21 @@ class _MainPageState extends State<MainPage> {
           onInvalid: (String error) => _fields[_Field.HeightMain].errorText = error,
         );
     bool isInputValid = validator.validate();
+    FocusScope.of(context).requestFocus(FocusNode());
     setState(() {});
     if (isInputValid) {
       Navigator.of(context).push(CupertinoPageRoute(
-        builder: (_) => ResultPage(),
+        builder: (_) => ResultPage(_currentGender, enteredAge, enteredHeightCm, enteredWeightKg),
       ));
     }
   }
 
+  int get enteredAge => int.tryParse(_fields[_Field.Age].controller.text);
+
   String Function(String) _validateAge(int min, int max) {
     return (String text) {
       try {
-        int parsedInt = int.tryParse(text);
+        int parsedInt = enteredAge;
         if (parsedInt != null && parsedInt >= min && parsedInt <= max) {
           return null;
         }
@@ -64,35 +67,45 @@ class _MainPageState extends State<MainPage> {
     };
   }
 
+  double get enteredWeightKg {
+    double parsed = double.tryParse(_fields[_Field.Weight].controller.text);
+    if (_currentUnitSystem == UnitSystem.imperial && parsed != null) {
+      parsed = parsed * _currentUnitSystem.weightUnitMultiplier;
+    }
+    return parsed;
+  }
+
   String Function(String) _validateWeight(double minKg, double maxKg) {
     return (String _) {
-      bool isImperial = _currentUnitSystem == UnitSystem.imperial;
       try {
-        double parsed = double.tryParse(_fields[_Field.Weight].controller.text);
-        if (isImperial) {
-          parsed = parsed * _currentUnitSystem.weightUnitMultiplier;
-        }
+        double parsed = enteredWeightKg;
 
         if (parsed != null && parsed >= minKg && parsed <= maxKg) {
           return null;
         }
       } catch (e) {}
-      String min = (isImperial ? minKg * _currentUnitSystem.weightUnitMultiplier : minKg).floor().toString();
-      String max = (isImperial ? maxKg * _currentUnitSystem.weightUnitMultiplier : maxKg).floor().toString();
+      double multiplier = _currentUnitSystem.weightUnitMultiplier;
+      String min = (_currentUnitSystem == UnitSystem.imperial ? minKg * multiplier : minKg).floor().toString();
+      String max = (_currentUnitSystem == UnitSystem.imperial ? maxKg * multiplier : maxKg).floor().toString();
       return '$min - $max  ${_currentUnitSystem.weightUnitName}';
     };
+  }
+
+  double get enteredHeightCm {
+    double parsed = double.tryParse(_fields[_Field.HeightMain].controller.text);
+    if (_currentUnitSystem == UnitSystem.imperial && parsed != null) {
+      parsed = parsed * 30.48;
+      double parsedInches = double.tryParse(_fields[_Field.HeightInch].controller.text) ?? 0;
+      parsed += parsedInches * _currentUnitSystem.lengthUnitMultiplier;
+    }
+    return parsed;
   }
 
   String Function(String) _validateHeight(double minCm, double maxCm) {
     return (String _) {
       bool isImperial = _currentUnitSystem == UnitSystem.imperial;
       try {
-        double parsed = double.tryParse(_fields[_Field.HeightMain].controller.text) ?? 0;
-        if (isImperial) {
-          parsed = parsed * 12 * _currentUnitSystem.lengthUnitMultiplier;
-          double parsedInches = double.tryParse(_fields[_Field.HeightInch].controller.text) ?? 0;
-          parsed += parsedInches * _currentUnitSystem.lengthUnitMultiplier;
-        }
+        double parsed = enteredHeightCm;
 
         if (parsed != null && parsed >= minCm && parsed <= maxCm) {
           return null;

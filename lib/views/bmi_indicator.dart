@@ -121,7 +121,7 @@ class BmiIndicator extends StatelessWidget {
               borderRadius: BorderRadius.all(_radius),
             ),
             child: Text(
-              '$value',
+              '${value == value.floor() ? value.toInt() : value.toDouble().toStringAsFixed(2)}',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
