@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/models/gender.dart';
 import 'package:flutter_bmi/models/unit_system.dart';
+import 'package:flutter_bmi/pages/result_page.dart';
+import 'package:flutter_bmi/views/bmi_text.dart';
 import 'package:flutter_bmi/views/no_glow_scroll_behavior.dart';
 import 'package:flutter_bmi/views/selectable_row.dart';
 
@@ -22,6 +25,9 @@ class _MainPageState extends State<MainPage> {
 
   void _onCalculate() async {
     // TODO
+    Navigator.of(context).push(CupertinoPageRoute(
+      builder: (_) => ResultPage(),
+    ));
   }
 
   @override
@@ -34,27 +40,27 @@ class _MainPageState extends State<MainPage> {
           child: ListView(
             children: <Widget>[
               SizedBox(height: 24),
-              _buildText('Select Your Gender'),
+              BmiText('Select Your Gender'),
               _buildGenders(),
               SizedBox(height: 24),
-              _buildText('Specify Your Age'),
+              BmiText('Specify Your Age'),
               _buildTextField(
                 controller: _ageController,
                 focusNode: _ageFocusNode,
                 nextFocusNode: _heightFocusNode,
               ),
               SizedBox(height: 24),
-              _buildText('Unit Type'),
+              BmiText('Unit Type'),
               _buildUnitSystems(),
               SizedBox(height: 24),
-              _buildText('Specify Your Height (${_currentUnitSystem.lengthUnitName})'),
+              BmiText('Specify Your Height (${_currentUnitSystem.lengthUnitName})'),
               _buildTextField(
                 controller: _heightController,
                 focusNode: _heightFocusNode,
                 nextFocusNode: _weightFocusNode,
               ),
               SizedBox(height: 24),
-              _buildText('Specify Your Weight (${_currentUnitSystem.weightUnitName})'),
+              BmiText('Specify Your Weight (${_currentUnitSystem.weightUnitName})'),
               _buildTextField(
                 controller: _weightController,
                 focusNode: _weightFocusNode,
@@ -67,20 +73,6 @@ class _MainPageState extends State<MainPage> {
               SizedBox(height: 24),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildText(String text) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-      child: Text(
-        '$text',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -128,7 +120,7 @@ class _MainPageState extends State<MainPage> {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth / 4, vertical: 8),
           child: TextFormField(
-            controller: _heightController,
+            controller: controller,
             keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
             textAlign: TextAlign.center,
             textAlignVertical: TextAlignVertical.center,
