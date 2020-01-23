@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bmi/models/field_data.dart';
 import 'package:flutter_bmi/models/gender.dart';
 import 'package:flutter_bmi/models/unit_system.dart';
-import 'package:flutter_bmi/pages/result_page.dart';
+import 'package:flutter_bmi/utils/validator.dart';
 import 'package:flutter_bmi/views/bmi_text.dart';
 import 'package:flutter_bmi/views/no_glow_scroll_behavior.dart';
 import 'package:flutter_bmi/views/selectable_row.dart';
+
+import 'result_page.dart';
+
+enum _Field { Age, HeightMain, HeightInch, Weight }
 
 class MainPage extends StatefulWidget {
   @override
@@ -13,21 +18,90 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  Map<_Field, FieldData> _fields = Map.fromIterable(_Field.values, key: (e) => e, value: (v) => FieldData());
+
   var _currentGender = Gender.male;
   var _currentUnitSystem = UnitSystem.metric;
 
-  var _ageController = TextEditingController();
-  var _ageFocusNode = FocusNode();
-  var _heightController = TextEditingController();
-  var _heightFocusNode = FocusNode();
-  var _weightController = TextEditingController();
-  var _weightFocusNode = FocusNode();
-
   void _onCalculate() async {
-    // TODO
-    Navigator.of(context).push(CupertinoPageRoute(
-      builder: (_) => ResultPage(),
-    ));
+    final validator = Validator()
+        .add<String, String>(
+          data: _fields[_Field.Age].controller.text,
+          onValidate: _validateAge(18, 100),
+          onValid: (String age) => _fields[_Field.Age].errorText = null,
+          onInvalid: (String error) => _fields[_Field.Age].errorText = error,
+        )
+        .add<String, String>(
+          data: _fields[_Field.Weight].controller.text,
+          onValidate: _validateWeight(50, 250),
+          onValid: (String age) => _fields[_Field.Weight].errorText = null,
+          onInvalid: (String error) => _fields[_Field.Weight].errorText = error,
+        )
+        .add<String, String>(
+          data: _fields[_Field.HeightMain].controller.text,
+          onValidate: _validateHeight(150, 230),
+          onValid: (String age) => _fields[_Field.HeightMain].errorText = null,
+          onInvalid: (String error) => _fields[_Field.HeightMain].errorText = error,
+        );
+    bool isInputValid = validator.validate();
+    setState(() {});
+    if (isInputValid) {
+      Navigator.of(context).push(CupertinoPageRoute(
+        builder: (_) => ResultPage(),
+      ));
+    }
+  }
+
+  String Function(String) _validateAge(int min, int max) {
+    return (String text) {
+      try {
+        int parsedInt = int.tryParse(text);
+        if (parsedInt != null && parsedInt >= min && parsedInt <= max) {
+          return null;
+        }
+      } catch (e) {}
+      return '$min - $max years';
+    };
+  }
+
+  String Function(String) _validateWeight(double minKg, double maxKg) {
+    return (String _) {
+      bool isImperial = _currentUnitSystem == UnitSystem.imperial;
+      try {
+        double parsed = double.tryParse(_fields[_Field.Weight].controller.text);
+        if (isImperial) {
+          parsed = parsed * _currentUnitSystem.weightUnitMultiplier;
+        }
+
+        if (parsed != null && parsed >= minKg && parsed <= maxKg) {
+          return null;
+        }
+      } catch (e) {}
+      String min = (isImperial ? minKg * _currentUnitSystem.weightUnitMultiplier : minKg).floor().toString();
+      String max = (isImperial ? maxKg * _currentUnitSystem.weightUnitMultiplier : maxKg).floor().toString();
+      return '$min - $max  ${_currentUnitSystem.weightUnitName}';
+    };
+  }
+
+  String Function(String) _validateHeight(double minCm, double maxCm) {
+    return (String _) {
+      bool isImperial = _currentUnitSystem == UnitSystem.imperial;
+      try {
+        double parsed = double.tryParse(_fields[_Field.HeightMain].controller.text) ?? 0;
+        if (isImperial) {
+          parsed = parsed * 12 * _currentUnitSystem.lengthUnitMultiplier;
+          double parsedInches = double.tryParse(_fields[_Field.HeightInch].controller.text) ?? 0;
+          parsed += parsedInches * _currentUnitSystem.lengthUnitMultiplier;
+        }
+
+        if (parsed != null && parsed >= minCm && parsed <= maxCm) {
+          return null;
+        }
+      } catch (e) {}
+      String min = (isImperial ? minCm * _currentUnitSystem.lengthUnitMultiplier / 12 : minCm).floor().toString();
+      String max = (isImperial ? maxCm * _currentUnitSystem.lengthUnitMultiplier / 12 : maxCm).floor().toString();
+      return '$min - $max ${isImperial ? 'ft' : _currentUnitSystem.lengthUnitName}';
+    };
   }
 
   @override
@@ -45,28 +119,36 @@ class _MainPageState extends State<MainPage> {
               SizedBox(height: 24),
               BmiText('Specify Your Age'),
               _buildTextField(
-                controller: _ageController,
-                focusNode: _ageFocusNode,
-                nextFocusNode: _heightFocusNode,
+                _fields[_Field.Age],
+                labelText: 'full years',
+                validator: _validateAge(18, 100),
+                nextFocusNode: _fields[_Field.HeightMain].focusNode,
               ),
               SizedBox(height: 24),
               BmiText('Unit Type'),
               _buildUnitSystems(),
               SizedBox(height: 24),
-              BmiText('Specify Your Height (${_currentUnitSystem.lengthUnitName})'),
+              BmiText('Specify Your Height ${_currentUnitSystem == UnitSystem.metric ? '(cm)' : '(ft/inch)'}'),
               _buildTextField(
-                controller: _heightController,
-                focusNode: _heightFocusNode,
-                nextFocusNode: _weightFocusNode,
+                _fields[_Field.HeightMain],
+                labelText: _currentUnitSystem == UnitSystem.metric ? 'cm' : 'ft',
+                nextFocusNode: _currentUnitSystem == UnitSystem.metric
+                    ? _fields[_Field.Weight].focusNode
+                    : _fields[_Field.HeightInch].focusNode,
               ),
+              if (_currentUnitSystem == UnitSystem.imperial)
+                _buildTextField(
+                  _fields[_Field.HeightInch],
+                  labelText: 'inch',
+                  nextFocusNode: _fields[_Field.Weight].focusNode,
+                ),
               SizedBox(height: 24),
               BmiText('Specify Your Weight (${_currentUnitSystem.weightUnitName})'),
               _buildTextField(
-                controller: _weightController,
-                focusNode: _weightFocusNode,
-                onDone: () {
-                  print('Done');
-                },
+                _fields[_Field.Weight],
+                labelText: _currentUnitSystem.weightUnitName,
+                validator: _validateWeight(50, 250),
+                onDone: _onCalculate,
               ),
               SizedBox(height: 24),
               _buildButton(),
@@ -82,7 +164,9 @@ class _MainPageState extends State<MainPage> {
     return SelectableRow(
       <Gender>[Gender.male, Gender.female],
       checkSelected: (gender) => _currentGender == gender,
-      setSelected: (gender) => setState(() => _currentGender = gender),
+      setSelected: (gender) => setState(() {
+        _currentGender = gender;
+      }),
       getName: (gender) => gender.name,
     );
   }
@@ -91,15 +175,18 @@ class _MainPageState extends State<MainPage> {
     return SelectableRow(
       <UnitSystem>[UnitSystem.metric, UnitSystem.imperial],
       checkSelected: (unitSystem) => _currentUnitSystem == unitSystem,
-      setSelected: (unitSystem) => setState(() => _currentUnitSystem = unitSystem),
+      setSelected: (unitSystem) => setState(() {
+        _currentUnitSystem = unitSystem;
+      }),
       getName: (unitSystem) => unitSystem.name,
     );
   }
 
-  Widget _buildTextField({
-    @required TextEditingController controller,
-    @required FocusNode focusNode,
+  Widget _buildTextField(
+    FieldData fieldData, {
+    String labelText,
     FocusNode nextFocusNode,
+    FormFieldValidator<String> validator,
     VoidCallback onDone,
   }) {
     VoidCallback onSubmit = () {};
@@ -120,13 +207,17 @@ class _MainPageState extends State<MainPage> {
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: constraints.maxWidth / 4, vertical: 8),
           child: TextFormField(
-            controller: controller,
+            controller: fieldData.controller,
             keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
             textAlign: TextAlign.center,
             textAlignVertical: TextAlignVertical.center,
-            focusNode: focusNode,
+            focusNode: fieldData.focusNode,
+            decoration: InputDecoration(
+              hintText: labelText ?? '',
+              errorText: fieldData.errorText,
+            ),
+            validator: validator,
             textInputAction: action,
-            onFieldSubmitted: (_) => onSubmit(),
             onEditingComplete: () => onSubmit(),
           ),
         );

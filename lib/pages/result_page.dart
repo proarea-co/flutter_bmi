@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/models/bmi_range.dart';
+import 'package:flutter_bmi/models/bmi_result.dart';
 import 'package:flutter_bmi/views/bmi_indicator.dart';
 import 'package:flutter_bmi/views/bmi_text.dart';
 
 class ResultPage extends StatelessWidget {
-  final double weightCorrection;
+  final BmiResult bmiResult;
 
-  const ResultPage({Key key, this.weightCorrection = 10}) : super(key: key);
+  const ResultPage({
+    this.bmiResult = const BmiResult(weightCorrection: -10, bmiAverage: 20.2, bmiCalculated: 30.4),
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +52,8 @@ class ResultPage extends StatelessWidget {
   Widget _buildIndexState() {
     return Builder(
       builder: (BuildContext context) {
+        final weightCorrection = bmiResult.weightCorrection;
+
         if (weightCorrection != null && weightCorrection != 0) {
           final absoluteWeight = weightCorrection.abs();
           return Column(
