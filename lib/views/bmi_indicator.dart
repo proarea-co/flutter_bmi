@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bmi/models/bmi_range.dart';
+import 'package:flutter_bmi/utils/constants.dart';
 
 class BmiIndicator extends StatelessWidget {
   static const _radius = Radius.circular(24);
   static const _indicatorHeight = 16.0;
-  static const _indicatorDotKoef = 3.0;
+  static const _indicatorDotMultiplier = 3.0;
 
   final List<BmiRange> bmiRanges;
   final double value;
 
   const BmiIndicator({
-    this.bmiRanges = BmiRange.constList,
+    this.bmiRanges = Constants.defaultBmiRanges,
     this.value = 30.4,
   });
 
@@ -130,9 +131,9 @@ class BmiIndicator extends StatelessWidget {
             ),
           ),
           Container(
-            margin: EdgeInsets.all(_indicatorDotKoef).add(EdgeInsets.only(top: _indicatorDotKoef * 4)),
-            height: _indicatorHeight - _indicatorDotKoef * 2,
-            width: _indicatorHeight - _indicatorDotKoef * 2,
+            margin: EdgeInsets.all(_indicatorDotMultiplier).add(EdgeInsets.only(top: _indicatorDotMultiplier * 4)),
+            height: _indicatorHeight - _indicatorDotMultiplier * 2,
+            width: _indicatorHeight - _indicatorDotMultiplier * 2,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,

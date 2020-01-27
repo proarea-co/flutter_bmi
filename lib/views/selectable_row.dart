@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+const _fullBoxSize = 88.0;
+const _unselectedBoxSize = 64.0;
+const _selectedBoxSize = 72.0;
+
 class SelectableRow<T> extends StatelessWidget {
   final List<T> data;
   final bool Function(T) checkSelected;
@@ -21,13 +25,13 @@ class SelectableRow<T> extends StatelessWidget {
         (T item) {
           bool isSelected = checkSelected(item);
 
-          double boxSize = isSelected ? 72 : 64;
+          double boxSize = isSelected ? _selectedBoxSize : _unselectedBoxSize;
           Color boxColor = isSelected ? Colors.blue : Colors.grey;
           VoidCallback onTap = isSelected ? null : () => setSelected(item);
 
           return Container(
-            height: 88,
-            width: 88,
+            height: _fullBoxSize,
+            width: _fullBoxSize,
             alignment: Alignment.center,
             child: GestureDetector(
               onTap: onTap,

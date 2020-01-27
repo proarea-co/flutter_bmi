@@ -10,6 +10,16 @@ import 'package:flutter_bmi/views/selectable_row.dart';
 
 import 'result_page.dart';
 
+const _ageMin = 18;
+const _ageMax = 100;
+const _weightKgMin = 50.0;
+const _weightKgMax = 250.0;
+const _heightCmMin = 150.0;
+const _heightCmMax = 230.0;
+
+const _cmToFtMultiplier = 30.48;
+const _ftToInchMultiplier = 12;
+
 enum _Field { Age, HeightMain, HeightInch, Weight }
 
 class MainPage extends StatefulWidget {
@@ -27,19 +37,19 @@ class _MainPageState extends State<MainPage> {
     final validator = Validator()
         .add<String, String>(
           data: _fields[_Field.Age].controller.text,
-          onValidate: _validateAge(18, 100),
+          onValidate: _validateAge(_ageMin, _ageMax),
           onValid: (String age) => _fields[_Field.Age].errorText = null,
           onInvalid: (String error) => _fields[_Field.Age].errorText = error,
         )
         .add<String, String>(
           data: _fields[_Field.Weight].controller.text,
-          onValidate: _validateWeight(50, 250),
+          onValidate: _validateWeight(_weightKgMin, _weightKgMax),
           onValid: (String age) => _fields[_Field.Weight].errorText = null,
           onInvalid: (String error) => _fields[_Field.Weight].errorText = error,
         )
         .add<String, String>(
           data: _fields[_Field.HeightMain].controller.text,
-          onValidate: _validateHeight(150, 230),
+          onValidate: _validateHeight(_heightCmMin, _heightCmMax),
           onValid: (String age) => _fields[_Field.HeightMain].errorText = null,
           onInvalid: (String error) => _fields[_Field.HeightMain].errorText = error,
         );
@@ -94,7 +104,7 @@ class _MainPageState extends State<MainPage> {
   double get enteredHeightCm {
     double parsed = double.tryParse(_fields[_Field.HeightMain].controller.text);
     if (_currentUnitSystem == UnitSystem.imperial && parsed != null) {
-      parsed = parsed * 30.48;
+      parsed = parsed * _cmToFtMultiplier;
       double parsedInches = double.tryParse(_fields[_Field.HeightInch].controller.text) ?? 0;
       parsed += parsedInches * _currentUnitSystem.lengthUnitMultiplier;
     }
@@ -111,8 +121,12 @@ class _MainPageState extends State<MainPage> {
           return null;
         }
       } catch (e) {}
-      String min = (isImperial ? minCm * _currentUnitSystem.lengthUnitMultiplier / 12 : minCm).floor().toString();
-      String max = (isImperial ? maxCm * _currentUnitSystem.lengthUnitMultiplier / 12 : maxCm).floor().toString();
+      String min = (isImperial ? minCm * _currentUnitSystem.lengthUnitMultiplier / _ftToInchMultiplier : minCm)
+          .floor()
+          .toString();
+      String max = (isImperial ? maxCm * _currentUnitSystem.lengthUnitMultiplier / _ftToInchMultiplier : maxCm)
+          .floor()
+          .toString();
       return '$min - $max ${isImperial ? 'ft' : _currentUnitSystem.lengthUnitName}';
     };
   }
@@ -134,7 +148,7 @@ class _MainPageState extends State<MainPage> {
               _buildTextField(
                 _fields[_Field.Age],
                 labelText: 'full years',
-                validator: _validateAge(18, 100),
+                validator: _validateAge(_ageMin, _ageMax),
                 nextFocusNode: _fields[_Field.HeightMain].focusNode,
               ),
               SizedBox(height: 24),
@@ -160,7 +174,7 @@ class _MainPageState extends State<MainPage> {
               _buildTextField(
                 _fields[_Field.Weight],
                 labelText: _currentUnitSystem.weightUnitName,
-                validator: _validateWeight(50, 250),
+                validator: _validateWeight(_weightKgMin, _weightKgMax),
                 onDone: _onCalculate,
               ),
               SizedBox(height: 24),

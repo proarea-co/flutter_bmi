@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bmi/models/bmi_range.dart';
 import 'package:flutter_bmi/models/bmi_result.dart';
 import 'package:flutter_bmi/models/gender.dart';
 import 'package:flutter_bmi/pages/bmi_calculation_bloc.dart';
+import 'package:flutter_bmi/utils/constants.dart';
 import 'package:flutter_bmi/utils/states.dart';
 import 'package:flutter_bmi/views/bmi_indicator.dart';
 import 'package:flutter_bmi/views/bmi_text.dart';
@@ -77,7 +77,7 @@ class _ResultPageState extends State<ResultPage> {
                   horizontal: MediaQuery.of(context).size.width / 4.5,
                 ),
               ),
-              BmiIndicator(value: bmiResult.bmiCalculated, bmiRanges: BmiRange.constList),
+              BmiIndicator(value: bmiResult.bmiCalculated, bmiRanges: Constants.defaultBmiRanges),
               SizedBox(height: 24),
               BmiText(
                 'Ideal BMI Index For Men Of Your Age',
@@ -86,7 +86,7 @@ class _ResultPageState extends State<ResultPage> {
                   horizontal: MediaQuery.of(context).size.width / 4.5,
                 ),
               ),
-              BmiIndicator(value: bmiResult.bmiAverage, bmiRanges: BmiRange.constList),
+              BmiIndicator(value: bmiResult.bmiAverage, bmiRanges: Constants.defaultBmiRanges),
               SizedBox(height: 24),
               _buildIndexState(bmiResult),
             ],
